@@ -23,7 +23,7 @@ RecAgent is a containerized FastAPI application implementing a cognitive-neurosc
 - **FastAPI**: RESTful API layer.
 - **ChromaDB**: Vector database for memory and product catalog.
 - **HuggingFace Local Embeddings**: `all-MiniLM-L6-v2` for semantic similarity.
-- **Gemini / GPT-4o**: Large Language Model for complex reasoning.
+- **Gemini**: Large Language Model for complex reasoning.
 - **DuckDuckGo Search**: Real-time web data fetching (Online mode).
 
 ## Getting Started

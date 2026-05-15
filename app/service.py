@@ -46,7 +46,7 @@ class RecAgentService:
         if self._model is None:
             if config.MODEL_PROVIDER == "gemini":
                 self._model = ChatGoogleGenerativeAI(
-                    model=config.MODEL_NAME or "gemini-2.0-flash-exp",
+                    model=config.MODEL_NAME or "gemini-2.5-flash-lite",
                     google_api_key=config.GOOGLE_API_KEY,
                 )
             elif config.MODEL_PROVIDER == "ollama":
