@@ -1,0 +1,28 @@
+[project]
+name = "dsn-rec-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "chromadb>=1.5.9",
+    "ddgs>=9.14.3",
+    "duckduckgo-search>=8.1.1",
+    "fastapi>=0.136.1",
+    "langchain-community>=0.4.1",
+    "langchain-core>=1.4.0",
+    "langchain-google-genai>=4.2.2",
+    "langchain-huggingface>=1.2.2",
+    "langchain-ollama>=1.1.0",
+    "langgraph>=1.2.0",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+    "sentence-transformers>=5.5.0",
+    "uvicorn>=0.46.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.3",
+]
