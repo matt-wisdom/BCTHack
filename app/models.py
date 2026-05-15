@@ -38,7 +38,7 @@ class Recommendation(BaseModel):
 
 class ReviewOutput(BaseModel):
     review: str
-    rating: int = Field(ge=1, le=10)
+    rating: int = Field(ge=1, le=5)
     economic_justification: str
 
 class RecommendationOutput(BaseModel):
