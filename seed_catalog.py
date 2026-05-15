@@ -2,10 +2,23 @@ import sys
 import os
 import csv
 import glob
+import zipfile
 
 # Ensure the app module can be imported
 sys.path.append(os.getcwd())
 from app.memory import memory_manager
+
+def unzip_datasets(dataset_dir):
+    print(f"📦 Checking for zipped datasets in {dataset_dir}...")
+    zip_files = glob.glob(os.path.join(dataset_dir, "*.zip"))
+    for zip_path in zip_files:
+        print(f"  ... unzipping {zip_path}")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(dataset_dir)
+    if zip_files:
+        print(f"✅ Unzipped {len(zip_files)} files.\n")
+    else:
+        print("  ... no zip files found.\n")
 
 def seed_dataset(file_path, source_name, row_limit=None):
     print(f"📂 Processing {source_name} dataset: {file_path}...")
@@ -71,10 +84,13 @@ def seed_dataset(file_path, source_name, row_limit=None):
 
 def run_seeder():
     print("🚀 Initializing system for seeding...")
-    memory_manager.initialize()
-    
     # Path to dataset folder
     dataset_dir = "dataset"
+    
+    # Ensure all files are unzipped
+    unzip_datasets(dataset_dir)
+    
+    memory_manager.initialize()
     
     # Map filenames to source names
     mappings = {

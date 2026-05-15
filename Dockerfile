@@ -23,5 +23,5 @@ RUN uv sync
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run seeding and then the application
+CMD ["sh", "-c", "uv run python download_models.py && uv run python seed_catalog.py && uv run python seed_economic_cache.py && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"]
