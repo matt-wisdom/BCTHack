@@ -69,8 +69,8 @@ RecAgent is a containerized FastAPI application implementing a cognitive-neurosc
 {
   "persona_text": "A 28-year-old tech enthusiast from Lagos...",
   "product_text": "Samsung Galaxy S24 Ultra...",
-  "mode": "offline",
-  "dataset_source": "store" 
+  "mode": "offline", # Optional
+  "dataset_source": "store"  # Optional
 }
 ```
 
@@ -81,8 +81,8 @@ RecAgent is a containerized FastAPI application implementing a cognitive-neurosc
 ```json
 {
   "persona_text": "A price-conscious student who loves photography...",
-  "mode": "offline",
-  "dataset_source": "all"
+  "mode": "offline", # Optional
+  "dataset_source": "all" # Optional
 }
 ```
 
