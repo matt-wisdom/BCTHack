@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSN Rec Agent UI</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        h1, h2 { color: #2c3e50; }
+        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        textarea, input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; white-space: pre-wrap; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 20px; height: 20px; animation: spin 2s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -2px; }
+        .tab.active { background: #fff; border-color: #ddd; border-top-left-radius: 4px; border-top-right-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>DSN Recommendation Agent</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('review')">Review Simulator</div>
+        <div class="tab" onclick="showTab('recommend')">Recommendation Generator</div>
+    </div>
+
+    <!-- Review Section -->
+    <div id="review-section" class="container">
+        <h2>Simulate Product Review</h2>
+        <div class="form-group">
+            <label for="review-persona">User Persona</label>
+            <textarea id="review-persona" rows="3" placeholder="e.g., A 25-year-old student from Nigeria who loves tech but is on a tight budget.">I be student for Lagos, things don cost. I need new phone for my pics but budget tight.</textarea>
+        </div>
+        <div class="form-group">
+            <label for="review-product">Product Details</label>
+            <textarea id="review-product" rows="3" placeholder="e.g., iPhone 15 Pro, 128GB, Natural Titanium.">Infinix Note 40 Pro, 8GB RAM, 256GB Storage, 108MP Camera.</textarea>
+        </div>
+        <div class="form-group">
+            <label for="review-mode">Mode</label>
+            <select id="review-mode">
+                <option value="offline">Offline (Fast)</option>
+                <option value="online">Online (Live Context)</option>
+            </select>
+        </div>
+        <button id="btn-review" onclick="submitReview()">
+            <span id="loader-review" class="loader"></span>Generate Review
+        </button>
+        <div id="result-review" class="result"></div>
+    </div>
+
+    <!-- Recommendation Section -->
+    <div id="recommend-section" class="container" style="display:none;">
+        <h2>Get Recommendations</h2>
+        <div class="form-group">
+            <label for="rec-persona">User Persona</label>
+            <textarea id="rec-persona" rows="3" placeholder="e.g., Professional gamer in UK looking for a new mouse.">Professional gamer in UK looking for a new mouse with low latency and high DPI.</textarea>
+        </div>
+        <div class="form-group">
+            <label for="rec-mode">Mode</label>
+            <select id="rec-mode">
+                <option value="offline">Offline (Fast)</option>
+                <option value="online">Online (Live Context)</option>
+            </select>
+        </div>
+        <button id="btn-rec" onclick="submitRecommendation()">
+            <span id="loader-rec" class="loader"></span>Get Recommendations
+        </button>
+        <div id="result-rec" class="result"></div>
+    </div>
+
+    <script>
+        function showTab(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+            
+            if (type === 'review') {
+                event.target.classList.add('active');
+                document.getElementById('review-section').style.display = 'block';
+            } else {
+                event.target.classList.add('active');
+                document.getElementById('recommend-section').style.display = 'block';
+            }
+        }
+
+        async function fetchApi(endpoint, data) {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Unknown error');
+            }
+            return await response.json();
+        }
+
+        async function submitReview() {
+            const btn = document.getElementById('btn-review');
+            const loader = document.getElementById('loader-review');
+            const resultDiv = document.getElementById('result-review');
+            
+            btn.disabled = true;
+            loader.style.display = 'inline-block';
+            resultDiv.style.display = 'none';
+
+            try {
+                const data = {
+                    persona_text: document.getElementById('review-persona').value,
+                    product_text: document.getElementById('review-product').value,
+                    mode: document.getElementById('review-mode').value
+                };
+                const result = await fetchApi('/reviews/simulate', data);
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `Rating: ${result.rating}/5\n\nReview:\n${result.review}\n\nEconomic Justification:\n${result.economic_justification}`;
+                resultDiv.style.display = 'block';
+            } catch (err) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${err.message}`;
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        async function submitRecommendation() {
+            const btn = document.getElementById('btn-rec');
+            const loader = document.getElementById('loader-rec');
+            const resultDiv = document.getElementById('result-rec');
+            
+            btn.disabled = true;
+            loader.style.display = 'inline-block';
+            resultDiv.style.display = 'none';
+
+            try {
+                const data = {
+                    persona_text: document.getElementById('rec-persona').value,
+                    mode: document.getElementById('rec-mode').value
+                };
+                const result = await fetchApi('/recommendations/generate', data);
+                
+                let recText = "Ranked Recommendations:\n";
+                result.recommendations.forEach(r => {
+                    recText += `${r.rank}. ${r.product_name}\n   Reason: ${r.reason}\n\n`;
+                });
+                recText += `Economic Justification:\n${result.economic_justification}`;
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = recText;
+                resultDiv.style.display = 'block';
+            } catch (err) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${err.message}`;
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from app.routers import reviews, recommendations
 from app.memory import memory_manager
 from contextlib import asynccontextmanager
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,4 +21,4 @@ app.include_router(recommendations.router)
 
 @app.get("/")
 async def root():
-    return {"message": "DSN Rec Agent API is running"}
+    return FileResponse(os.path.join("app", "static", "index.html"))

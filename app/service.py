@@ -247,7 +247,7 @@ CONSTRAINTS:
 PRIMARY CONTEXT:
 - Persona: {persona.age}yo {persona.behavioral_feature} in {econ.country}
 - Interests: {', '.join(persona.interests)}
-- Available Products (Sensory Catalog): {discovery_context}
+- Available Products (Sensory Catalog - Local + Web): {discovery_context}
 - Recent Context (Short-Term Memory): {short_term_context}
 - Past Behaviors (Long-Term Memory): {state['long_term_memory']}
 
@@ -255,14 +255,15 @@ SECONDARY ECONOMIC CONTEXT:
 - Local Economic Indicators: Inflation {econ.inflation_rate}%, PPI {econ.purchasing_power_index}
 
 INSTRUCTIONS:
-1. Review the products in the Sensory Catalog.
+1. Review the products in the Sensory Catalog (Local Database and Web Discovery).
 2. Select the top 3 products that best match the persona's interests and behavioral features.
 3. Use the economic context only as a minor filter to ensure the selections are reasonable for their likely budget.
 4. Justify why these specific 3 items provide the best utility and "fit" for the persona.
 5. Think step-by-step.
 
 CONSTRAINTS:
-- CRITICAL: Select products ONLY from the 'ACTUAL PRODUCTS FROM LOCAL DATABASE' list.
+- Use ONLY products mentioned in the provided Sensory Catalog. 
+- In ONLINE mode, you SHOULD prioritize fresh products from Web Discovery if they are more relevant than the Local Database items.
 - Prioritize "fit" and "utility" over financial analysis.
 """
             
@@ -276,10 +277,11 @@ CONSTRAINTS:
 
     async def verification_node(self, state: RecAgentState) -> Dict[str, Any]:
         task = state["task_type"]
+        mode = state["mode"]
         discovery_context = "\n---\n".join([obs.content for obs in state["sensory_memory"]])
         last_reasoning = state["reasoning_log"][-1]
         
-        print(f"[NODE: verification] Auditing reasoning for {task}")
+        print(f"[NODE: verification] Auditing reasoning for {task} (Mode: {mode})")
         
         if task == "review":
             prompt = f"""You are a quality control auditor for an AI recommendation agent.
@@ -300,10 +302,33 @@ CONSTRAINTS:
 - Prioritize product relevance over macroeconomic analysis.
 """
         else:
-            prompt = f"""You are a quality control auditor for an AI recommendation agent.
+            # For recommendations
+            if mode == "online":
+                prompt = f"""You are a quality control auditor for an AI recommendation agent.
 
 CONTEXT:
 - Task: {task}
+- Mode: ONLINE (Web discovery is active)
+- Discovery Context (Local + Web): {discovery_context}
+- Reasoning to Verify: {last_reasoning}
+
+INSTRUCTIONS:
+1. Verify if the reasoning for selecting these 3 items is sensible and aligns with the persona.
+2. Check for general logical consistency.
+3. Since we are in ONLINE mode, products can come from either the local catalog or the web discovery context. Verify they are based on the provided discovery context.
+4. If valid, return "VALID".
+5. If invalid, provide a specific and constructive CRITIQUE.
+
+CONSTRAINTS:
+- Output MUST be either "VALID" or a critique starting with "CRITIQUE:".
+- Focus on logical fit and relevance.
+"""
+            else:
+                prompt = f"""You are a quality control auditor for an AI recommendation agent.
+
+CONTEXT:
+- Task: {task}
+- Mode: OFFLINE (Strict local catalog only)
 - Available Catalog from Local Database: {discovery_context}
 - Reasoning to Verify: {last_reasoning}
 
@@ -404,17 +429,18 @@ CONSTRAINTS:
             prompt = f"""You are a helpful shopping assistant. Help a {persona.age}yo {persona.behavioral_feature} from {persona.country} find the best products.
 
 CONTEXT:
-- Available Catalog: {discovery_context}
+- Available Catalog (Local + Web): {discovery_context}
 - Inner Reasoning: {state['reasoning_log'][-1]}
 
 INSTRUCTIONS:
-1. Select the top 3 ranked products from the catalog.
+1. Select the top 3 ranked products from the catalog provided in the CONTEXT.
 2. Provide a clear reason for each recommendation, focusing on product utility and persona fit.
 3. Provide a brief economic justification as a supporting note.
 4. Embody the shopping assistant's geographic location. Write using the vocabulary, regional slang, idioms, and grammatical quirks typical of someone from {persona.country} with the following linguistic traits: {detected_style}.
 
 CONSTRAINTS:
-- Use ONLY products mentioned in the 'Available Catalog'. 
+- Use ONLY products mentioned in the provided 'Available Catalog'. 
+- In ONLINE mode, you should prefer fresh products from Web Discovery if they are more relevant.
 - Prioritize product utility over financial indicators.
 - Write strictly in the voice and vocabulary of the localized assistant.
 - Output MUST match the requested JSON schema exactly.
