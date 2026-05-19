@@ -36,7 +36,7 @@ RecAgent is a containerized FastAPI application implementing a cognitive-neurosc
 
 1. **Clone the repository**:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/matt-wisdom/BCTHack
    cd dsn-rec-agent
    ```
 
